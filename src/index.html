@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f1117;
+            color: #e1e4e8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+        .container {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #f0f6fc;
+        }
+        .subtitle {
+            color: #8b949e;
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #c9d1d9;
+            margin-bottom: 6px;
+        }
+        .hint {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 4px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e1e4e8;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus {
+            border-color: #58a6ff;
+        }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+        button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+        .btn-start {
+            background: #238636;
+            color: #fff;
+        }
+        .btn-start:hover:not(:disabled) {
+            background: #2ea043;
+        }
+        .btn-stop {
+            background: #da3633;
+            color: #fff;
+        }
+        .btn-stop:hover:not(:disabled) {
+            background: #f85149;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .progress-section {
+            margin-top: 28px;
+            display: none;
+        }
+        .progress-section.visible {
+            display: block;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 24px;
+            background: #0d1117;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #30363d;
+            margin-bottom: 16px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #238636, #3fb950);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            min-width: 40px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .stat-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 14px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-top: 4px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .status-running {
+            background: rgba(35, 134, 54, 0.2);
+            color: #3fb950;
+        }
+        .status-idle {
+            background: rgba(139, 148, 158, 0.2);
+            color: #8b949e;
+        }
+        .status-done {
+            background: rgba(88, 166, 255, 0.2);
+            color: #58a6ff;
+        }
+        .message {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+        .message.visible {
+            display: block;
+        }
+        .message.error {
+            background: rgba(218, 54, 51, 0.15);
+            border: 1px solid rgba(218, 54, 51, 0.4);
+            color: #f85149;
+        }
+        .message.success {
+            background: rgba(35, 134, 54, 0.15);
+            border: 1px solid rgba(35, 134, 54, 0.4);
+            color: #3fb950;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Log Generator</h1>
+        <p class="subtitle">Generate realistic enterprise-grade log files for testing your logging platform.</p>
+
+        <div class="form-group">
+            <label for="numServices">Number of Microservices</label>
+            <input type="number" id="numServices" value="10" min="1" max="1000">
+            <p class="hint">Each service generates logs in its own subdirectory under <code>logs/</code></p>
+        </div>
+
+        <div class="form-group">
+            <label for="totalSize">Total Log Volume (MB)</label>
+            <input type="number" id="totalSize" value="100" min="1" max="1048576">
+            <p class="hint">Total size of all generated logs. Use 1024 for 1 GB, 10240 for 10 GB, etc.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="fileMaxSize">Max File Size Before Rotation (MB)</label>
+            <input type="number" id="fileMaxSize" value="100" min="1" max="10240">
+            <p class="hint">When a log file reaches this size, it will be archived and a new file created.</p>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn-start" id="btnStart" onclick="startGeneration()">▶ Start Generation</button>
+            <button class="btn-stop" id="btnStop" onclick="stopGeneration()" disabled>■ Stop</button>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="progress-section" id="progressSection">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBar" style="width: 0%">0%</div>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Written</div>
+                    <div class="stat-value" id="bytesWritten">0 B</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Target</div>
+                    <div class="stat-value" id="targetBytes">0 B</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Services</div>
+                    <div class="stat-value" id="servicesDone">0 / 0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Status</div>
+                    <div id="statusBadge"><span class="status-badge status-idle">IDLE</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pollInterval = null;
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.textContent = text;
+            el.className = 'message visible ' + type;
+            setTimeout(() => { el.className = 'message'; }, 5000);
+        }
+
+        async function startGeneration() {
+            const numServices = parseInt(document.getElementById('numServices').value);
+            const totalSize = parseInt(document.getElementById('totalSize').value);
+            const fileMaxSize = parseInt(document.getElementById('fileMaxSize').value);
+
+            try {
+                const resp = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        num_services: numServices,
+                        total_size_mb: totalSize,
+                        file_max_size_mb: fileMaxSize
+                    })
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    showMessage(data.error || 'Failed to start', 'error');
+                    return;
+                }
+                showMessage(data.message, 'success');
+                document.getElementById('btnStart').disabled = true;
+                document.getElementById('btnStop').disabled = false;
+                document.getElementById('progressSection').classList.add('visible');
+                startPolling();
+            } catch (e) {
+                showMessage('Failed to connect to server: ' + e.message, 'error');
+            }
+        }
+
+        async function stopGeneration() {
+            try {
+                const resp = await fetch('/api/stop', { method: 'POST' });
+                const data = await resp.json();
+                showMessage(data.message, 'success');
+            } catch (e) {
+                showMessage('Failed to stop: ' + e.message, 'error');
+            }
+        }
+
+        function startPolling() {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(pollProgress, 400);
+        }
+
+        async function pollProgress() {
+            try {
+                const resp = await fetch('/api/progress');
+                const data = await resp.json();
+
+                const pct = Math.min(data.percent, 100);
+                document.getElementById('progressBar').style.width = pct + '%';
+                document.getElementById('progressBar').textContent = pct.toFixed(1) + '%';
+                document.getElementById('bytesWritten').textContent = formatBytes(data.bytes_written);
+                document.getElementById('targetBytes').textContent = formatBytes(data.target_bytes);
+                document.getElementById('servicesDone').textContent = data.services_done + ' / ' + data.services_total;
+
+                const statusEl = document.getElementById('statusBadge');
+                if (data.running) {
+                    statusEl.innerHTML = '<span class="status-badge status-running">RUNNING</span>';
+                } else if (data.bytes_written > 0 && data.percent >= 99.9) {
+                    statusEl.innerHTML = '<span class="status-badge status-done">COMPLETE</span>';
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    document.getElementById('btnStart').disabled = false;
+                    document.getElementById('btnStop').disabled = true;
+                } else if (data.bytes_written > 0) {
+                    statusEl.innerHTML = '<span class="status-badge status-done">STOPPED</span>';
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    document.getElementById('btnStart').disabled = false;
+                    document.getElementById('btnStop').disabled = true;
+                } else {
+                    statusEl.innerHTML = '<span class="status-badge status-idle">IDLE</span>';
+                }
+            } catch (e) {
+                // ignore transient fetch errors
+            }
+        }
+    </script>
+</body>
+</html>
+
