@@ -1,4 +1,4 @@
-# 🔧 Log Generator
+#  Log Generator
 
 A high-performance Rust application that generates realistic, enterprise-grade log files at scale. Built for stress-testing and validating log aggregation platforms such as Splunk, Kibana, Datadog, Grafana Loki, and similar tools.
 
